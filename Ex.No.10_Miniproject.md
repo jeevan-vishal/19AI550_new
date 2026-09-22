@@ -1,106 +1,126 @@
 # Ex.No: 10  Implementation of 2D/3D Game Development Using Unity
-### DATE: 18/09/2026                                                                           
-### REGISTER NUMBER : 212224240062
-### AIM: 
-To design and develop a simple 3D Coin Collector game using Unity, where the player moves using keyboard controls, collects coins, maintains a score, and displays a YOU WIN! message after collecting all coins.
-### Algorithm:
-1.Start Unity and create a 3D game project.  
-2.Create a ground using a Plane.  
-3.Create a Player using a Capsule.  
-4.Add Rigidbody and Collider components to the Player.  
-5.Create a C# script to control Player movement using W, A, S, D keys.  
-6.Create five coin objects using Cylinders.  
-7.Add a C# script to rotate and collect the coins.  
-8.Set the coin colliders as Triggers.   
-9.Create a Canvas and add a score text displaying Coins: 0.  
-10.Create a GameManager to update the score whenever a coin is collected.  
-11.Display YOU WIN! when all five coins are collected.  
-12.Test the game in Unity.    
-13.Save the Unity project.  
-14.Upload the project to the required GitHub repository.  
-  
-### Program:
-## 1.PlayerMovement.cs
-```
-using UnityEngine;
 
-public class PlayerMovement : MonoBehaviour
+### DATE: 22/09/2026                                                                           
+### REGISTER NUMBER : 212224240062
+
+### AIM: 
+To develop a simple 2D Platform Shooter Game using Unity Engine where the player can move, jump, shoot enemies, collect coins, and achieve a high score.
+
+### Algorithm – 2D Platform Shooter Game
+
+1. Start the Unity game and initialize the player, enemies, coins, bullets, score, and lives.
+2. Create the 2D game environment with platforms, background, and obstacles.
+3. Read the player's left and right movement input.
+4. Move the player horizontally according to the input.
+5. Check whether the player is standing on the ground.
+6. Allow the player to jump when the Space key is pressed.
+7. Create and fire a bullet when the player clicks the mouse.
+8. Detect collisions between bullets, enemies, players, and coins.
+9. Increase the score when coins are collected and update the score display.
+10. Continue the game until the player reaches the goal or loses all lives, then display the result.
+
+### Program:
+  
+## 1.PlayerController.cs
+
+```
+
+using UnityEngine;
+using UnityEngine.UI;
+
+public class PlayerController : MonoBehaviour
 {
     public float speed = 5f;
+    public float jumpForce = 7f;
 
-    void Update()
-    {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+    public Transform groundCheck;
+    public LayerMask groundLayer;
 
-        Vector3 movement = new Vector3(horizontal, 0f, vertical);
+    public GameObject bulletPrefab;
+    public Transform firePoint;
+    public Text scoreText;
 
-        transform.Translate(movement * speed * Time.deltaTime);
-    }
-}
-```
-## 2.Coin.cs
-```
-using UnityEngine;
-
-public class Coin : MonoBehaviour
-{
-    void Update()
-    {
-        transform.Rotate(0, 100 * Time.deltaTime, 0);
-    }
-
-    private void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player"))
-        {
-            GameManager.instance.CollectCoin();
-            Destroy(gameObject);
-        }
-    }
-}
-```
-## 3.GameManager.cs
-```
-using UnityEngine;
-using TMPro;
-
-public class GameManager : MonoBehaviour
-{
-    public static GameManager instance;
-
-    public TextMeshProUGUI scoreText;
-    public TextMeshProUGUI winText;
-
+    private Rigidbody2D rb;
+    private bool isGrounded;
     private int score = 0;
-
-    void Awake()
-    {
-        instance = this;
-    }
 
     void Start()
     {
-        scoreText.text = "Coins: 0";
-        winText.text = "";
+        rb = GetComponent<Rigidbody2D>();
+        UpdateScore();
     }
 
-    public void CollectCoin()
+    void Update()
     {
-        score++;
-        scoreText.text = "Coins: " + score;
+        float horizontal = Input.GetAxisRaw("Horizontal");
 
-        if (score >= 5)
+        rb.velocity = new Vector2(horizontal * speed, rb.velocity.y);
+
+        isGrounded = Physics2D.OverlapCircle(
+            groundCheck.position,
+            0.15f,
+            groundLayer
+        );
+
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
-            winText.text = "YOU WIN!";
+            rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+        }
+
+        if (Input.GetMouseButtonDown(0))
+        {
+            Shoot();
         }
     }
+
+    void Shoot()
+    {
+        if (bulletPrefab == null || firePoint == null)
+            return;
+
+        GameObject bullet = Instantiate(
+            bulletPrefab,
+            firePoint.position,
+            Quaternion.identity
+        );
+
+        Rigidbody2D bulletRb = bullet.GetComponent<Rigidbody2D>();
+
+        if (bulletRb != null)
+            bulletRb.velocity = Vector2.right * 10f;
+
+        Destroy(bullet, 3f);
+    }
+
+    private void OnTriggerEnter2D(Collider2D other)
+    {
+        if (other.CompareTag("Coin"))
+        {
+            score += 10;
+            UpdateScore();
+            Destroy(other.gameObject);
+        }
+
+        if (other.CompareTag("Enemy"))
+        {
+            score -= 5;
+            UpdateScore();
+        }
+    }
+
+    void UpdateScore()
+    {
+        if (scoreText != null)
+            scoreText.text = "Score: " + score;
+    }
 }
+
 ```
+
 ### Output:
-<img width="1920" height="1080" alt="Screenshot (20)" src="https://github.com/user-attachments/assets/a898192a-23cd-4af5-9b14-0c72fc204e12" />
-<img width="1920" height="1080" alt="Screenshot (21)" src="https://github.com/user-attachments/assets/037d15e3-4ea3-4a42-a2e0-eea2a38646ed" />
+
+<img width="931" height="522" alt="image" src="https://github.com/user-attachments/assets/1c52d5ea-331a-4723-af13-7997d89d5ef8" />
 
 
 ### Result:
-Thus, a simple 3D Coin Collector game was successfully designed and developed using Unity. The Player movement, coin collection, score counter, winning condition, and colorful game environment were successfully implemented and tested.
+Thus, the 2D Platform Shooter Game was successfully developed using Unity Engine. The player can move and jump across platforms, shoot enemies, collect coins, and the score is updated based on the player's actions.
